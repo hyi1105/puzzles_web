@@ -13,15 +13,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Overwrite index.html
+        env:
+          HTML_CONTENT: ${{ github.event.inputs.content }}
         run: |
-          # 1. 設定身分（解決 Exit code 2 的關鍵）
           git config --global user.email "hyi1105@users.noreply.github.com"
           git config --global user.name "hyi1105"
           
-          # 2. 寫入內容
-          echo '${{ github.event.inputs.content }}' > index.html
+          # 使用環境變數寫入，徹底避開 shell 的引號問題
+          echo "$HTML_CONTENT" > index.html
           
-          # 3. 提交並推送
           git add index.html
-          git commit -m "皇上御筆：日系美學翻新" || echo "No changes to commit"
+          git commit -m "皇上御筆：日系工藝翻新" || echo "No changes to commit"
           git push
