@@ -1,13 +1,9 @@
-name: Gemini Data Logger
+name: Gemini Auto Update
 on:
   workflow_dispatch:
     inputs:
-      action_type:
-        description: 'Update Code or Log Data'
-        required: true
-        default: 'update'
       content:
-        description: 'Content to save'
+        description: 'New HTML Content'
         required: true
 jobs:
   update:
@@ -16,20 +12,13 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Save Content
+      - name: Overwrite index.html
+        env:
+          HTML_CONTENT: ${{ github.event.inputs.content }}
         run: |
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Action"
-          
-          if [ "${{ github.event.inputs.action_type }}" == "log" ]; then
-            # 如果是存資料，就追加到 data.csv
-            echo "${{ github.event.inputs.content }}" >> data.csv
-            git add data.csv
-            git commit -m "收到新奏摺 (Data Log)"
-          else
-            # 如果是更換網頁代碼，就覆蓋 index.html
-            echo '${{ github.event.inputs.content }}' > index.html
-            git add index.html
-            git commit -m "介面翻新"
-          fi
+          git config --global user.email "hyi1105@users.noreply.github.com"
+          git config --global user.name "hyi1105"
+          echo "$HTML_CONTENT" > index.html
+          git add index.html
+          git commit -m "皇上御筆：修正格式" || echo "No changes"
           git push
