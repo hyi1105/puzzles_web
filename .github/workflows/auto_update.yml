@@ -8,18 +8,20 @@ on:
 jobs:
   update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
       - name: Overwrite index.html
         run: |
-          # 建立一個乾淨的 index.html
-          printf "%s" "${{ github.event.inputs.content }}" > index.html
+          # 1. 設定身分（解決 Exit code 2 的關鍵）
+          git config --global user.email "hyi1105@users.noreply.github.com"
+          git config --global user.name "hyi1105"
           
-          # 強制身分驗證並推送
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          # 2. 寫入內容
+          echo '${{ github.event.inputs.content }}' > index.html
+          
+          # 3. 提交並推送
           git add index.html
-          git commit -m "皇上御筆親改：風格翻新" || echo "No changes to commit"
-          git push origin main
+          git commit -m "皇上御筆：日系美學翻新" || echo "No changes to commit"
+          git push
