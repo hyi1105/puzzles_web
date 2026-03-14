@@ -1,35 +1,64 @@
-name: Gemini Data Logger
-on:
-  workflow_dispatch:
-    inputs:
-      action_type:
-        description: 'Update Code or Log Data'
-        required: true
-        default: 'update'
-      content:
-        description: 'Content to save'
-        required: true
-jobs:
-  update:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - name: Save Content
-        run: |
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Action"
-          
-          if [ "${{ github.event.inputs.action_type }}" == "log" ]; then
-            # 如果是存資料，就追加到 data.csv
-            echo "${{ github.event.inputs.content }}" >> data.csv
-            git add data.csv
-            git commit -m "收到新奏摺 (Data Log)"
-          else
-            # 如果是更換網頁代碼，就覆蓋 index.html
-            echo '${{ github.event.inputs.content }}' > index.html
-            git add index.html
-            git commit -m "介面翻新"
-          fi
-          git push
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>Clay Garden | Real Sync</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200;400&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #f8f6f1; --text: #5a554f; --accent: #a89f91; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Noto Serif TC', serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .card { background: #fff; padding: 60px; width: 400px; box-shadow: 0 4px 30px rgba(0,0,0,0.02); text-align: center; }
+        h1 { font-weight: 200; font-size: 24px; margin-bottom: 40px; }
+        input { width: 100%; border: none; border-bottom: 1px solid #eee; padding: 15px 0; margin-bottom: 30px; font-family: inherit; outline: none; background: transparent; }
+        .btn-send { width: 100%; border: 1px solid var(--accent); background: none; padding: 15px; cursor: pointer; font-family: inherit; letter-spacing: 0.3em; transition: 0.4s; }
+        .btn-send:hover { background: var(--text); color: #fff; }
+        #status { font-size: 11px; margin-top: 20px; color: var(--accent); opacity: 0; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>雲端存檔</h1>
+    <input type="text" id="userInput" placeholder="請輸入奏摺內容...">
+    <button class="btn-send" onclick="sendData()">SUBMIT TO CLOUD</button>
+    <div id="status">正在傳送至雲端案卷庫...</div>
+</div>
+
+<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(isSubmitted){showSuccess();}"></iframe>
+
+<script>
+    let isSubmitted = false;
+
+    // --- 皇上請在此處填入您的座標 ---
+    const GOOGLE_FORM_ID = "1FAIpQLSclA7i97m7V0f2X_pX0K9j4m0Z-S9K1..."; // 換成您的 ID
+    const ENTRY_ID = "entry.123456789"; // 換成您的 Entry ID
+    // ----------------------------
+
+    function sendData() {
+        const val = document.getElementById('userInput').value;
+        if(!val) return alert('請填寫內容');
+
+        const status = document.getElementById('status');
+        status.style.opacity = "1";
+        
+        // 建立一個看不見的表單，繞過 CORS
+        const f = document.createElement('form');
+        f.action = `https://docs.google.com/forms/d/e/${GOOGLE_FORM_ID}/formResponse`;
+        f.method = 'POST';
+        f.target = 'hidden_iframe'; // 交給隱身傳令官處理跳轉
+
+        const i = document.createElement('input');
+        i.name = ENTRY_ID;
+        i.value = val;
+        
+        f.appendChild(i);
+        document.body.appendChild(f);
+        
+        isSubmitted = true;
+        f.submit();
+        f.remove();
+    }
+
+    function showSuccess() {
+        document.getElementById('status').innerText = "傳送成功！皇上已閱。";
+        document.getElementById('userInput
